@@ -29,6 +29,8 @@ jobs:
       - run: npm run build
         env:
           NEXT_PUBLIC_BASE_PATH: /larabeauty-store
+          NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL: https://script.google.com/macros/s/AKfycbzBIsOiNMzbh6r9GIgl1jihYKU3DSTRwGPR_0kaCwicQ-cjKiZNtiF9a5mAZXLkoldwAw/exec
+          NEXT_PUBLIC_SHEETS_WEBHOOK_SECRET: lara-beauty-secret-2026
 
       - uses: actions/upload-pages-artifact@v3
         with:

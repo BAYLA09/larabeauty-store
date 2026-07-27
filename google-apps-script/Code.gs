@@ -1,9 +1,6 @@
 /**
  * Lara Beauty — Google Sheets order webhook
- *
- * Writes one row per product line to tab "Tabellenblatt1".
- *
- * Columns: date | order id | country | name | phone | product | url | sku | quantite | totalprice | currency
+ * Target tab: Tabellenblatt1 (first sheet)
  */
 
 const SPREADSHEET_ID = "1n_vZl2t3X_KV0Rkpj6dR9TZRRm3OETv3IjIdzcH-diU";
@@ -13,14 +10,13 @@ const WEBHOOK_SECRET = "lara-beauty-secret-2026";
 function doPost(e) {
   try {
     const body = parseRequestBody_(e);
-    const secret = String(body.secret || "");
 
-    if (secret !== WEBHOOK_SECRET) {
+    if (String(body.secret || "") !== WEBHOOK_SECRET) {
       return jsonResponse_({ success: false, error: "invalid_secret" });
     }
 
     const sheet = getOrdersSheet_();
-    const lines = Array.isArray(body.lines) ? body.lines : [];
+    const lines = normalizeLines_(body);
 
     if (!lines.length) {
       return jsonResponse_({ success: false, error: "missing_lines" });
@@ -45,25 +41,43 @@ function doPost(e) {
     return jsonResponse_({
       success: true,
       orderId: body.orderId || "",
+      sheet: sheet.getName(),
       rowsAdded: lines.length,
     });
   } catch (error) {
-    return jsonResponse_({
-      success: false,
-      error: String(error),
-    });
+    return jsonResponse_({ success: false, error: String(error) });
   }
+}
+
+function normalizeLines_(body) {
+  if (Array.isArray(body.lines) && body.lines.length) {
+    return body.lines;
+  }
+
+  if (body.items) {
+    return [
+      {
+        product: String(body.items),
+        url: body.sourceUrl || "",
+        sku: body.sku || "",
+        quantity: Number(body.quantity || 1),
+        totalPrice: Number(body.total || 0),
+      },
+    ];
+  }
+
+  return [];
 }
 
 function getOrdersSheet_() {
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  const named = spreadsheet.getSheetByName(SHEET_NAME);
 
-  if (!sheet) {
-    throw new Error("sheet_not_found: " + SHEET_NAME);
+  if (named) {
+    return named;
   }
 
-  return sheet;
+  return spreadsheet.getSheets()[0];
 }
 
 function parseRequestBody_(e) {

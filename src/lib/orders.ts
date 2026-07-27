@@ -170,6 +170,8 @@ export async function postToGoogleAppsScript(
 
 export async function submitOrder(input: SubmitOrderInput): Promise<void> {
   const externalApi = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  const webhookUrl = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL;
+  const webhookSecret = process.env.NEXT_PUBLIC_SHEETS_WEBHOOK_SECRET;
   const basePath = getBasePath();
   const orderBody = {
     orderId: input.orderId,
@@ -200,6 +202,14 @@ export async function submitOrder(input: SubmitOrderInput): Promise<void> {
     return;
   }
 
+  if (webhookUrl && webhookSecret) {
+    await postToGoogleAppsScript(
+      webhookUrl,
+      buildSheetsOrderPayload(input, webhookSecret)
+    );
+    return;
+  }
+
   const apiUrl = `${basePath}/api/orders/`;
   const apiRes = await fetch(apiUrl, {
     method: "POST",
@@ -219,16 +229,4 @@ export async function submitOrder(input: SubmitOrderInput): Promise<void> {
         "order_failed"
     );
   }
-
-  const webhookUrl = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL;
-  const webhookSecret = process.env.NEXT_PUBLIC_SHEETS_WEBHOOK_SECRET;
-
-  if (!webhookUrl || !webhookSecret) {
-    return;
-  }
-
-  await postToGoogleAppsScript(
-    webhookUrl,
-    buildSheetsOrderPayload(input, webhookSecret)
-  );
 }
