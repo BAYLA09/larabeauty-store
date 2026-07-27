@@ -2,20 +2,27 @@
 
 Arabic RTL storefront for **Lara Beauty** (UAE — COD gummies).
 
-## Deploy (Vercel — recommended)
+## Deploy — 1 click w kolchi khddam
 
-Site dyalek `larabeauty.store` khassu y-deploy f **Vercel**, machi GitHub Pages.
+### Option A: GitHub Pages (auto — kol push)
 
-### Step 1 — Connect Vercel
+**Wa7ed lمرة b ydek:**
 
-1. Sir l [vercel.com/new](https://vercel.com/new)
-2. **Import** repo: `BAYLA09/larabeauty-store`
-3. Framework: **Next.js** (auto-detected)
-4. **Deploy** (first deploy)
+1. Sir l https://github.com/BAYLA09/larabeauty-store/settings/pages
+2. **Source** → **Deploy from a branch**
+3. Branch: **gh-pages** → Folder: **/ (root)** → Save
 
-### Step 2 — Environment variables
+Mn ba3d, kol push l `main` kay-deploy automatiquement (~1 min).
 
-F Vercel → Project → **Settings → Environment Variables**, zid:
+**DNS** (f registrar dyalek):
+- `larabeauty.store` → A records: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+- `www` → CNAME → `bayla09.github.io`
+
+### Option B: Vercel (2 min)
+
+1. https://vercel.com/new → Import `BAYLA09/larabeauty-store`
+2. Deploy → Settings → Domains → `larabeauty.store`
+3. Env vars (Settings → Environment Variables):
 
 ```
 GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/u/1/s/AKfycbxmRpjD1uGAfwWMzPbmKvA47kKygi1i6RQSD7R6dck6MiwI036ZYe8jG3HtOI_uFPZBIw/exec
@@ -25,25 +32,14 @@ NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbx
 NEXT_PUBLIC_SHEETS_WEBHOOK_SECRET=lara-beauty-secret-2026
 ```
 
-3. **Redeploy** (Deployments → ... → Redeploy)
+### Option C: Netlify
 
-### Step 3 — Custom domain
-
-1. Vercel → Project → **Settings → Domains**
-2. Zid `larabeauty.store` w `www.larabeauty.store`
-3. Dir DNS records li kay3tik Vercel f registrar dyalek
+1. https://app.netlify.com → Import `BAYLA09/larabeauty-store`
+2. `netlify.toml` kay-configuri kolchi automatiquement
 
 ---
 
-## GitHub Pages (optional — not active yet)
-
-GitHub Actions build kaynajح, walakin **Pages ma activéch** f repo. Ila bghiti GitHub Pages:
-
-1. Sir l [github.com/BAYLA09/larabeauty-store/settings/pages](https://github.com/BAYLA09/larabeauty-store/settings/pages)
-2. **Source** → **GitHub Actions**
-3. Re-run workflow: Actions → Deploy to GitHub Pages → Run workflow
-
-Site ghadi ykon f `https://bayla09.github.io/larabeauty-store/` (machi larabeauty.store).
+**Ma kaynch backend msepar** — Google Sheets webhook howa backend. Orders kaymشيو direct mn site.
 
 ---
 
