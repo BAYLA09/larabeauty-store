@@ -11,7 +11,10 @@ Site dyalek **static** — ma kayhtajch VPS wla Easypanel. Kol push l `main` kay
 **Wa7ed lمرة (2 clics):**
 
 1. Sir l https://github.com/BAYLA09/larabeauty-store/settings/pages
-2. **Build and deployment** → Source: **GitHub Actions** → Save
+2. **Build and deployment** → Source: **Deploy from a branch**
+3. Branch: **gh-pages** → Folder: **/ (root)** → **Save**
+
+> Kol push l `main` kay-update `gh-pages` automatiquement. Ma khasskch t-deploy yedk.
 
 **DNS** (f registrar dyalek — Namecheap, GoDaddy, etc.):
 
