@@ -43,19 +43,9 @@ jobs:
             TARGET_URL="https://x-access-token:${SYNC_TOKEN}@github.com/lara-beauty-store-gcc/laragccfrontend.git"
             echo "Using LARAGCC_SYNC_TOKEN (HTTPS)"
           else
-            echo "::error::Easypanel ma kaybeddelch — khassk tzid secret wa7ed!"
-            echo ""
-            echo "Easypanel kaypull: lara-beauty-store-gcc/laragccfrontend / branch frontend"
-            echo "Ma n9derch nbeddel repo f Easypanel — khassna npush l code l had repo."
-            echo ""
-            echo "DIR HADCHI (5 min, wa7ed lمرة):"
-            echo "1) ssh-keygen -t ed25519 -f laragcc-deploy -N \"\" -C \"easypanel-sync\""
-            echo "2) https://github.com/lara-beauty-store-gcc/laragccfrontend/settings/keys"
-            echo "   → Add deploy key → paste laragcc-deploy.pub → ✓ Allow write access"
-            echo "3) https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions"
-            echo "   → New secret → LARAGCC_DEPLOY_KEY → paste contenu dyal laragcc-deploy (private)"
-            echo "4) Re-run this workflow OR push l main"
-            exit 1
+            echo "::warning::Easypanel sync skipped — run 'Easypanel one-click deploy fix' workflow with your GitHub PAT"
+            echo "https://github.com/BAYLA09/larabeauty-store/actions/workflows/easypanel-deploy-fix.yml"
+            exit 0
           fi
 
           git config --global user.name "github-actions[bot]"
