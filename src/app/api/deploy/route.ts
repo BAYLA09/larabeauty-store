@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { spawn } from "child_process";
 import path from "path";
 
-export const dynamic = "force-dynamic";
-
 export async function POST(request: Request) {
   const expected =
     process.env.DEPLOY_WEBHOOK_SECRET || "lara-beauty-secret-2026";
