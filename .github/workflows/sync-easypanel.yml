@@ -24,58 +24,84 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Sync main → lara-beauty-store-gcc/laragccfrontend (branch frontend)
+      - name: Push code → laragccfrontend/frontend (Easypanel repo)
         env:
+          DEPLOY_KEY: ${{ secrets.LARAGCC_DEPLOY_KEY }}
           SYNC_TOKEN: ${{ secrets.LARAGCC_SYNC_TOKEN }}
         run: |
-          if [ -z "$SYNC_TOKEN" ]; then
-            echo "::error::LARAGCC_SYNC_TOKEN missing — Easypanel still deploys OLD code from laragccfrontend!"
+          set -euo pipefail
+
+          if [ -n "$DEPLOY_KEY" ]; then
+            mkdir -p ~/.ssh
+            printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+            export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes"
+            TARGET_URL="git@github.com:lara-beauty-store-gcc/laragccfrontend.git"
+            echo "Using LARAGCC_DEPLOY_KEY (SSH)"
+          elif [ -n "$SYNC_TOKEN" ]; then
+            TARGET_URL="https://x-access-token:${SYNC_TOKEN}@github.com/lara-beauty-store-gcc/laragccfrontend.git"
+            echo "Using LARAGCC_SYNC_TOKEN (HTTPS)"
+          else
+            echo "::error::Easypanel ma kaybeddelch — khassk tzid secret wa7ed!"
             echo ""
-            echo "FIX (30 sec): https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions"
-            echo "  Secret name: LARAGCC_SYNC_TOKEN"
-            echo "  Value: GitHub PAT with write access to lara-beauty-store-gcc/laragccfrontend"
+            echo "Easypanel kaypull: lara-beauty-store-gcc/laragccfrontend / branch frontend"
+            echo "Ma n9derch nbeddel repo f Easypanel — khassna npush l code l had repo."
             echo ""
-            echo "OR run locally: bash scripts/sync-easypanel-frontend.sh"
-            echo "OR Easypanel → frontend → Source → BAYLA09/larabeauty-store / branch frontend"
+            echo "DIR HADCHI (5 min, wa7ed lمرة):"
+            echo "1) ssh-keygen -t ed25519 -f laragcc-deploy -N \"\" -C \"easypanel-sync\""
+            echo "2) https://github.com/lara-beauty-store-gcc/laragccfrontend/settings/keys"
+            echo "   → Add deploy key → paste laragcc-deploy.pub → ✓ Allow write access"
+            echo "3) https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions"
+            echo "   → New secret → LARAGCC_DEPLOY_KEY → paste contenu dyal laragcc-deploy (private)"
+            echo "4) Re-run this workflow OR push l main"
             exit 1
           fi
 
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          git clone --depth 1 -b frontend \
-            "https://x-access-token:${SYNC_TOKEN}@github.com/lara-beauty-store-gcc/laragccfrontend.git" \
-            sync-target
+          git clone --depth 1 -b frontend "$TARGET_URL" sync-target
 
-          rsync -av --delete \
-            --exclude .git \
-            --exclude node_modules \
-            --exclude .next \
-            --exclude out \
-            ./ sync-target/
+          find sync-target -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          tar -C . \
+            --exclude=.git \
+            --exclude=node_modules \
+            --exclude=.next \
+            --exclude=out \
+            --exclude=sync-target \
+            -cf - . | tar -xf - -C sync-target
 
           cd sync-target
           git add -A
+
           if git diff --staged --quiet; then
-            echo "No changes to sync"
+            echo "✓ laragccfrontend/frontend deja à jour"
             exit 0
           fi
 
-          git commit -m "sync: BAYLA09/larabeauty-store@${GITHUB_SHA}
+          git commit -m "deploy(frontend): sync from BAYLA09/larabeauty-store@${GITHUB_SHA}
 
-          Auto-sync from main — Easypanel frontend deploy"
-          git push origin frontend
-          echo "✓ Pushed to lara-beauty-store-gcc/laragccfrontend branch frontend"
+          EasyPanel: laragccfrontend / frontend / port 3000
+          Auto-sync GitHub Actions"
 
-      - name: Trigger Easypanel frontend deploy
+          if [ -n "${DEPLOY_KEY:-}" ]; then
+            GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes" git push origin frontend
+          else
+            git push origin frontend
+          fi
+
+          echo "✓ Pushed → lara-beauty-store-gcc/laragccfrontend branch frontend"
+          echo "→ Daba: Easypanel → frontend → Deploy"
+
+      - name: Trigger Easypanel deploy
         continue-on-error: true
         env:
           EASYPANEL_TOKEN: ${{ secrets.EASYPANEL_DEPLOY_TOKEN }}
         run: |
           if [ -z "$EASYPANEL_TOKEN" ]; then
-            echo "Skip Easypanel webhook — set EASYPANEL_DEPLOY_TOKEN"
+            echo "Optional: set EASYPANEL_DEPLOY_TOKEN to auto-deploy after sync"
             exit 0
           fi
           curl -sf -m 60 -X POST "http://187.124.12.89:3000/api/deploy/${EASYPANEL_TOKEN}" \
-            && echo "✓ Easypanel deploy triggered" \
-            || echo "⚠ Easypanel webhook failed"
+            && echo "✓ Easypanel deploy triggered"

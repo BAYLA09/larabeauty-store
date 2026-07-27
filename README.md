@@ -2,48 +2,61 @@
 
 Arabic RTL storefront for **Lara Beauty** (UAE — COD gummies).
 
-## Deploy — lmochkil dyal Easypanel (9ra hadchi!)
+## Deploy Easypanel — `laragccfrontend` / `frontend` (ma tbeddelch repo!)
 
-### 3lach Deploy kaymشي w site ma kaybeddelch?
+Easypanel **mkhabbi** 3la:
+- **Repository:** `lara-beauty-store-gcc/laragccfrontend`
+- **Branch:** `frontend`
+- **Port:** 3000 ✅ (deja mzyan)
 
-Easypanel kaypull mn **`lara-beauty-store-gcc/laragccfrontend`** branch **`frontend`**.
-Code jdid kayn f **`BAYLA09/larabeauty-store`** — **repo akhor!**
-
-Kol clique 3la Deploy kayrebuild **nefs l-code qdim** (`ac0cfd7`).
-
----
-
-### Fix 1 — Beddel Source f Easypanel (30 sec) ⭐⭐⭐
-
-1. http://187.124.12.89:3000/projects/larabeauty/app/frontend/source
-2. Repository: **`BAYLA09/larabeauty-store`**
-3. Branch: **`frontend`**
-4. Source path: *(vide)*
-5. Build → Dockerfile → port **3000**
-6. **Deploy**
+Code jdid kayn f `BAYLA09/larabeauty-store`. **Khassna npush l `laragccfrontend`** — Deploy bo7do ma kaykfi.
 
 ---
 
-### Fix 2 — Push l `laragccfrontend` (ila bghiti tb9a 3la nafs repo)
+### Fix — Deploy Key (5 min, wa7ed lمرة) ⭐
 
-**A) Script (f machine dyalek, logged in GitHub):**
+**1) F terminal dyalek — generi key:**
+
+```bash
+ssh-keygen -t ed25519 -f laragcc-deploy -N "" -C "easypanel-sync"
+cat laragcc-deploy.pub
+```
+
+**2) Zid public key f laragccfrontend:**
+
+→ https://github.com/lara-beauty-store-gcc/laragccfrontend/settings/keys
+
+- Title: `larabeauty-store-sync`
+- Key: paste contenu dyal `laragcc-deploy.pub`
+- ✅ **Allow write access**
+
+**3) Zid private key f larabeauty-store secrets:**
+
+→ https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions
+
+- Name: **`LARAGCC_DEPLOY_KEY`**
+- Value: copier **kol** fichier `laragcc-deploy` (private, bla .pub)
+
+**4) Trigger sync:**
+
+→ https://github.com/BAYLA09/larabeauty-store/actions/workflows/sync-easypanel.yml → **Run workflow**
+
+**5) Easypanel → frontend → Deploy**
+
+Mn ba3d, kol push l `main` ghadi y-sync automatiquement.
+
+---
+
+### Alternative — script local (ila 3ndek access l laragccfrontend)
 
 ```bash
 git clone -b frontend https://github.com/BAYLA09/larabeauty-store.git
-cd larabeauty-store
-bash scripts/sync-easypanel-frontend.sh
+cd larabeauty-store && bash scripts/sync-easypanel-frontend.sh
 ```
-
-**B) GitHub Secret (auto kol push):**
-
-1. https://github.com/settings/tokens → Generate token → scope **`repo`**
-2. https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions
-3. Secret: **`LARAGCC_SYNC_TOKEN`** = token
-4. Push l `main` → auto-sync → Deploy f Easypanel
 
 ---
 
-### Easypanel settings (frontend service)
+### Easypanel settings (deja configuré)
 
 | Setting | Value |
 |---------|--------|
