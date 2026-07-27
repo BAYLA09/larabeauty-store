@@ -6,7 +6,31 @@ Arabic RTL storefront for **Lara Beauty** (UAE — COD gummies).
 
 Site dyalek **static** — ma kayhtajch VPS wla Easypanel. Kol push l `main` kay-build automatiquement.
 
-### Option 1: GitHub Pages (recommandé — gratuit, auto)
+### Easypanel — deploy **frontend** (mach backend!)
+
+F screenshot dyalek, 3andek 3 services: `backend`, `database`, `frontend`.
+
+- **backend** = API Express (repo akhor) — kaydeploy mzyan ✅
+- **frontend** = site `larabeauty.store` — **hada li khassou y-deploy** ⚠️
+
+#### Steps f Easypanel (frontend service):
+
+1. F sidebar, clique **frontend** (mach backend!)
+2. **Source** → GitHub → repo: `BAYLA09/larabeauty-store` → branch: `main`
+3. **Build** → method: **Dockerfile** (mach Nixpacks!)
+4. **Domains** → container port: **80** → domain: `larabeauty.store`
+5. **Deployments** → clique **Deploy**
+
+#### Auto-deploy (kol push):
+
+1. F **frontend** → **Deployments** → copier **Deployment Trigger URL**
+   - `http://187.124.12.89:3000/api/deploy/XXXXXXXX`
+2. GitHub → Settings → Secrets → `EASYPANEL_DEPLOY_TOKEN` = token `XXXXXXXX`
+3. Wla activi **Auto Deploy** f Easypanel (kayzid webhook f GitHub)
+
+> **Note:** `backend` w `frontend` services mseparin. Backend kaydeploy ma kaybeddelch site — frontend howa li kayserve `larabeauty.store`.
+
+### Option 1: GitHub Pages (bla Easypanel — ashel)
 
 **Wa7ed lمرة (2 clics):**
 
@@ -51,17 +75,13 @@ NEXT_PUBLIC_SHEETS_WEBHOOK_SECRET=lara-beauty-secret-2026
 
 ### Easypanel (ikhtiyari — ila bghiti tb9a 3lih)
 
-Ila bghiti tb9a 3la Easypanel/VPS:
-
-1. **Build** tab → method: **Dockerfile** (mach Nixpacks)
-2. **Domains** → port container: **80**
-3. **Deploy** → ila kayfail, chouf logs
+Chouf section **Easypanel — deploy frontend** l fo9.
 
 Walakin **GitHub Pages wla Netlify ashel** — ma kayhtajch server.
 
 ---
 
-**Ma kaynch backend** — Google Sheets webhook howa backend. Orders kaymشيو direct mn site.
+**Ma kayhtajch backend API** bach orders — Google Sheets webhook howa backend. Orders kaymشيو direct mn site. Service `backend` f Easypanel ikhtiyari.
 
 ---
 
