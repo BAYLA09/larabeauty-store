@@ -46,6 +46,23 @@ jobs:
           path: out
           retention-days: 1
 
+  deploy-easypanel:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Easypanel frontend deploy
+        continue-on-error: true
+        env:
+          EASYPANEL_TOKEN: ${{ secrets.EASYPANEL_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$EASYPANEL_TOKEN" ]; then
+            echo "Skip Easypanel — set EASYPANEL_DEPLOY_TOKEN from frontend → Deployments"
+            exit 0
+          fi
+          curl -sf -m 60 -X POST "http://187.124.12.89:3000/api/deploy/${EASYPANEL_TOKEN}" \
+            && echo "Easypanel frontend deploy triggered" \
+            || echo "Easypanel webhook failed — check frontend service token"
+
   deploy-github-pages:
     needs: build
     runs-on: ubuntu-latest
