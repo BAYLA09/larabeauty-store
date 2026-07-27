@@ -2,10 +2,23 @@ name: Sync to Easypanel repo
 
 on:
   push:
-    branches: [main]
+    branches: [main, frontend]
   workflow_dispatch:
 
 jobs:
+  sync-frontend-branch:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mirror main → frontend branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git push origin "HEAD:refs/heads/frontend" --force-with-lease
+
   sync-laragccfrontend:
     runs-on: ubuntu-latest
     steps:

@@ -19,12 +19,14 @@ Easypanel **frontend** kaypull mn repo **akhor**:
 
 1. Easypanel → **frontend** → **Source**
 2. Repo: **`BAYLA09/larabeauty-store`**
-3. Branch: **`main`**
+3. Branch: **`frontend`** ← hadi li Easypanel kaysta3mel
 4. Source path: *(vide)*
 5. **Build** → Dockerfile → port **3000**
 6. **Deploy**
 
-### Fix B — Auto-sync (ila ma bghitich tbddl source)
+> Kol push l `main` kay-update branch **`frontend`** automatiquement (GitHub Actions).
+
+### Fix B — Ila Easypanel mazal 3la `laragccfrontend`
 
 1. GitHub → https://github.com/settings/tokens → Generate PAT (scope: `repo`)
 2. Sir l https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions
