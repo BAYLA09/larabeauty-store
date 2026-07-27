@@ -29,10 +29,15 @@ jobs:
           SYNC_TOKEN: ${{ secrets.LARAGCC_SYNC_TOKEN }}
         run: |
           if [ -z "$SYNC_TOKEN" ]; then
-            echo "⚠ LARAGCC_SYNC_TOKEN not set — skip sync to Easypanel repo"
-            echo "Easypanel deploys from lara-beauty-store-gcc/laragccfrontend branch frontend"
-            echo "Add a GitHub PAT with repo write access as LARAGCC_SYNC_TOKEN"
-            exit 0
+            echo "::error::LARAGCC_SYNC_TOKEN missing — Easypanel still deploys OLD code from laragccfrontend!"
+            echo ""
+            echo "FIX (30 sec): https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions"
+            echo "  Secret name: LARAGCC_SYNC_TOKEN"
+            echo "  Value: GitHub PAT with write access to lara-beauty-store-gcc/laragccfrontend"
+            echo ""
+            echo "OR run locally: bash scripts/sync-easypanel-frontend.sh"
+            echo "OR Easypanel → frontend → Source → BAYLA09/larabeauty-store / branch frontend"
+            exit 1
           fi
 
           git config --global user.name "github-actions[bot]"
