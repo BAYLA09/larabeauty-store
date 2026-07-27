@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       customerName: body.customerName,
       phone: body.phone,
       sourceUrl,
-      lines: orderLinesToSheetLines(body.items, sourceUrl),
+      lines: orderLinesToSheetLines(body.items),
     },
     secret
   );

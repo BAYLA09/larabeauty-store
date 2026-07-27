@@ -57,12 +57,11 @@ export function cartItemsToOrderLines(items: CartItem[]): OrderLineItem[] {
 }
 
 export function orderLinesToSheetLines(
-  items: OrderLineItem[],
-  sourceUrl: string
+  items: OrderLineItem[]
 ): SheetsOrderLine[] {
   return items.map((item) => ({
     product: item.name,
-    url: item.slug ? getProductUrl(item.slug, sourceUrl) : sourceUrl,
+    url: getProductUrl(item.slug),
     sku: item.sku,
     quantity: item.quantity,
     totalPrice: item.lineTotal,
@@ -79,14 +78,11 @@ export function formatOrderItemsSummary(items: CartItem[]): string {
     .join(" | ");
 }
 
-export function getProductUrl(slug: string, sourceUrl: string): string {
-  try {
-    const origin = new URL(sourceUrl).origin;
-    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-    return `${origin}${basePath}/products/${slug}/`;
-  } catch {
-    return sourceUrl;
-  }
+export function getProductUrl(slug: string): string {
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || businessConfig.siteUrl;
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+  return `${siteUrl.replace(/\/$/, "")}${basePath}/products/${slug}`;
 }
 
 export function buildSheetsOrderPayloadFromLines(
@@ -122,10 +118,7 @@ export function buildSheetsOrderPayload(
       customerName: input.customerName,
       phone: input.phone,
       sourceUrl: input.sourceUrl,
-      lines: orderLinesToSheetLines(
-        cartItemsToOrderLines(input.items),
-        input.sourceUrl
-      ),
+      lines: orderLinesToSheetLines(cartItemsToOrderLines(input.items)),
     },
     secret
   );

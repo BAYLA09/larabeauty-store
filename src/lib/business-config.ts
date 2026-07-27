@@ -20,6 +20,7 @@ export const businessConfig = {
     phoneCountryCode: "+971",
     phoneExample: "501234567",
   },
+  siteUrl: "https://larabeauty.store",
   cod: {
     enabled: true,
     paymentLabel: "دفع عند الاستلام — بدون دفع أونلاين",
