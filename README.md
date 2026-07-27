@@ -2,57 +2,63 @@
 
 Arabic RTL storefront for **Lara Beauty** (UAE — COD gummies).
 
-## Deploy — auto f kol push l `main`
+## Deploy — ma bghiti Easypanel? (2 dakika)
 
-### VPS (Easypanel) — larabeauty.store
+Site dyalek **static** — ma kayhtajch VPS wla Easypanel. Kol push l `main` kay-build automatiquement.
 
-**Wa7ed lمرة** — zid deploy token f GitHub Secrets:
+### Option 1: GitHub Pages (recommandé — gratuit, auto)
 
-1. Sir l Easypanel → app dyalek → **Deployments** → copier **Deployment Trigger URL**
-   - Format: `http://187.124.12.89:3000/api/deploy/XXXXXXXX`
-2. Sir l https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions
-3. **New secret** → Name: `EASYPANEL_DEPLOY_TOKEN` → Value: `XXXXXXXX` (token mn URL)
-
-Mn ba3d, kol push l `main` kay-trigger deploy automatiquement.
-
-**Alternative (SSH):** zid `SSH_USER` + `SSH_PRIVATE_KEY` f GitHub Secrets.
-
-### Option A: GitHub Pages (backup static)
-
-**Wa7ed lمرة b ydek:**
+**Wa7ed lمرة (2 clics):**
 
 1. Sir l https://github.com/BAYLA09/larabeauty-store/settings/pages
-2. **Source** → **Deploy from a branch**
-3. Branch: **gh-pages** → Folder: **/ (root)** → Save
+2. **Build and deployment** → Source: **GitHub Actions** → Save
 
-Mn ba3d, kol push l `main` kay-deploy automatiquement (~1 min).
+**DNS** (f registrar dyalek — Namecheap, GoDaddy, etc.):
 
-**DNS** (f registrar dyalek):
-- `larabeauty.store` → A records: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+- **Supprimer** A record li kaypointi l `187.124.12.89` (VPS/Easypanel)
+- **Zid** had A records:
+  - `185.199.108.153`
+  - `185.199.109.153`
+  - `185.199.110.153`
+  - `185.199.111.153`
 - `www` → CNAME → `bayla09.github.io`
 
-### Option B: Vercel (2 min)
+Mn ba3d ~5-30 min, `larabeauty.store` ghadi ykhdem b l-build jdid automatiquement.
+
+### Option 2: Netlify (sahl bzaf)
+
+1. Sir l https://app.netlify.com → **Add new site** → **Import from Git** → `BAYLA09/larabeauty-store`
+2. Deploy (kaykhdem automatiquement)
+3. **Domain settings** → zid `larabeauty.store`
+4. Beddel DNS 3la hsab instructions dyal Netlify
+
+**Auto-deploy mn GitHub Actions (optional):** zid secrets `NETLIFY_AUTH_TOKEN` + `NETLIFY_SITE_ID` f GitHub.
+
+### Option 3: Vercel
 
 1. https://vercel.com/new → Import `BAYLA09/larabeauty-store`
 2. Deploy → Settings → Domains → `larabeauty.store`
-3. Env vars (Settings → Environment Variables):
+3. Env vars:
 
 ```
-GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/u/1/s/AKfycbxmRpjD1uGAfwWMzPbmKvA47kKygi1i6RQSD7R6dck6MiwI036ZYe8jG3HtOI_uFPZBIw/exec
-SHEETS_WEBHOOK_SECRET=lara-beauty-secret-2026
 NEXT_PUBLIC_SITE_URL=https://larabeauty.store
 NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbxmRpjD1uGAfwWMzPbmKvA47kKygi1i6RQSD7R6dck6MiwI036ZYe8jG3HtOI_uFPZBIw/exec
 NEXT_PUBLIC_SHEETS_WEBHOOK_SECRET=lara-beauty-secret-2026
 ```
 
-### Option C: Netlify
+### Easypanel (ikhtiyari — ila bghiti tb9a 3lih)
 
-1. https://app.netlify.com → Import `BAYLA09/larabeauty-store`
-2. `netlify.toml` kay-configuri kolchi automatiquement
+Ila bghiti tb9a 3la Easypanel/VPS:
+
+1. **Build** tab → method: **Dockerfile** (mach Nixpacks)
+2. **Domains** → port container: **80**
+3. **Deploy** → ila kayfail, chouf logs
+
+Walakin **GitHub Pages wla Netlify ashel** — ma kayhtajch server.
 
 ---
 
-**Ma kaynch backend msepar** — Google Sheets webhook howa backend. Orders kaymشيو direct mn site.
+**Ma kaynch backend** — Google Sheets webhook howa backend. Orders kaymشيو direct mn site.
 
 ---
 
@@ -84,5 +90,6 @@ Open http://localhost:3000
 
 ```bash
 npm run build
-npm start
 ```
+
+Static files f dossier `out/`.
