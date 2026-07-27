@@ -4,35 +4,44 @@ Arabic RTL storefront for **Lara Beauty** (UAE — COD gummies).
 
 ## Deploy — lmochkil dyal Easypanel (9ra hadchi!)
 
-### 3lach ma kaydeployich?
+### 3lach Deploy kaymشي w site ma kaybeddelch?
 
-Easypanel **frontend** kaypull mn repo **akhor**:
+Easypanel kaypull mn **`lara-beauty-store-gcc/laragccfrontend`** branch **`frontend`**.
+Code jdid kayn f **`BAYLA09/larabeauty-store`** — **repo akhor!**
 
-| | Easypanel daba | Code dyalek (main) |
-|---|---|---|
-| **Repo** | `lara-beauty-store-gcc/laragccfrontend` | `BAYLA09/larabeauty-store` |
-| **Branch** | `frontend` | `main` |
+Kol clique 3la Deploy kayrebuild **nefs l-code qdim** (`ac0cfd7`).
 
-**Kolchi li derna f `main` ma kaywصلch l Easypanel** — 3lach site qdim!
+---
 
-### Fix A — Beddel source f Easypanel (2 min) ⭐
+### Fix 1 — Beddel Source f Easypanel (30 sec) ⭐⭐⭐
 
-1. Easypanel → **frontend** → **Source**
-2. Repo: **`BAYLA09/larabeauty-store`**
-3. Branch: **`frontend`** ← hadi li Easypanel kaysta3mel
+1. http://187.124.12.89:3000/projects/larabeauty/app/frontend/source
+2. Repository: **`BAYLA09/larabeauty-store`**
+3. Branch: **`frontend`**
 4. Source path: *(vide)*
-5. **Build** → Dockerfile → port **3000**
+5. Build → Dockerfile → port **3000**
 6. **Deploy**
 
-> Kol push l `main` kay-update branch **`frontend`** automatiquement (GitHub Actions).
+---
 
-### Fix B — Ila Easypanel mazal 3la `laragccfrontend`
+### Fix 2 — Push l `laragccfrontend` (ila bghiti tb9a 3la nafs repo)
 
-1. GitHub → https://github.com/settings/tokens → Generate PAT (scope: `repo`)
-2. Sir l https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions
-3. Zid secret: **`LARAGCC_SYNC_TOKEN`** = PAT dyalek
-4. (Optional) **`EASYPANEL_DEPLOY_TOKEN`** = token mn frontend → Deployments
-5. Kol push l `main` ghadi y-sync l `laragccfrontend` w y-trigger deploy
+**A) Script (f machine dyalek, logged in GitHub):**
+
+```bash
+git clone -b frontend https://github.com/BAYLA09/larabeauty-store.git
+cd larabeauty-store
+bash scripts/sync-easypanel-frontend.sh
+```
+
+**B) GitHub Secret (auto kol push):**
+
+1. https://github.com/settings/tokens → Generate token → scope **`repo`**
+2. https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions
+3. Secret: **`LARAGCC_SYNC_TOKEN`** = token
+4. Push l `main` → auto-sync → Deploy f Easypanel
+
+---
 
 ### Easypanel settings (frontend service)
 
@@ -58,9 +67,8 @@ F screenshot dyalek, 3andek 3 services: `backend`, `database`, `frontend`.
 #### Steps f Easypanel (frontend service):
 
 1. F sidebar, clique **frontend** (mach backend!)
-2. **Source** → GitHub → repo: `BAYLA09/larabeauty-store` → branch: `main`
-3. **Build** → method: **Dockerfile** (mach Nixpacks!)
-4. **Domains** → container port: **80** → domain: `larabeauty.store`
+2. **Source** → GitHub → repo: `BAYLA09/larabeauty-store` → branch: **`frontend`**
+3. **Build** → method: **Dockerfile** (mach Nixpacks!) → port **3000**
 5. **Deployments** → clique **Deploy**
 
 #### Auto-deploy (kol push):
