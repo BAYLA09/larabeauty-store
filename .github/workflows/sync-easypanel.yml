@@ -1,0 +1,63 @@
+name: Sync to Easypanel repo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sync-laragccfrontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync main → lara-beauty-store-gcc/laragccfrontend (branch frontend)
+        env:
+          SYNC_TOKEN: ${{ secrets.LARAGCC_SYNC_TOKEN }}
+        run: |
+          if [ -z "$SYNC_TOKEN" ]; then
+            echo "⚠ LARAGCC_SYNC_TOKEN not set — skip sync to Easypanel repo"
+            echo "Easypanel deploys from lara-beauty-store-gcc/laragccfrontend branch frontend"
+            echo "Add a GitHub PAT with repo write access as LARAGCC_SYNC_TOKEN"
+            exit 0
+          fi
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git clone --depth 1 -b frontend \
+            "https://x-access-token:${SYNC_TOKEN}@github.com/lara-beauty-store-gcc/laragccfrontend.git" \
+            sync-target
+
+          rsync -av --delete \
+            --exclude .git \
+            --exclude node_modules \
+            --exclude .next \
+            --exclude out \
+            ./ sync-target/
+
+          cd sync-target
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to sync"
+            exit 0
+          fi
+
+          git commit -m "sync: BAYLA09/larabeauty-store@${GITHUB_SHA}
+
+          Auto-sync from main — Easypanel frontend deploy"
+          git push origin frontend
+          echo "✓ Pushed to lara-beauty-store-gcc/laragccfrontend branch frontend"
+
+      - name: Trigger Easypanel frontend deploy
+        continue-on-error: true
+        env:
+          EASYPANEL_TOKEN: ${{ secrets.EASYPANEL_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$EASYPANEL_TOKEN" ]; then
+            echo "Skip Easypanel webhook — set EASYPANEL_DEPLOY_TOKEN"
+            exit 0
+          fi
+          curl -sf -m 60 -X POST "http://187.124.12.89:3000/api/deploy/${EASYPANEL_TOKEN}" \
+            && echo "✓ Easypanel deploy triggered" \
+            || echo "⚠ Easypanel webhook failed"
