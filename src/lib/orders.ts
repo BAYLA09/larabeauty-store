@@ -3,11 +3,13 @@ import { businessConfig } from "@/lib/business-config";
 
 export interface OrderLineItem {
   productId: string;
+  slug: string;
   sku: string;
   name: string;
   bundleId: string;
   unitPriceAed: number;
   quantity: number;
+  lineTotal: number;
 }
 
 export interface SubmitOrderInput {
@@ -21,29 +23,49 @@ export interface SubmitOrderInput {
   eventId: string;
 }
 
+export interface SheetsOrderLine {
+  product: string;
+  url: string;
+  sku: string;
+  quantity: number;
+  totalPrice: number;
+}
+
 export interface SheetsOrderPayload {
   secret: string;
   orderId: string;
   date: string;
+  country: string;
   customerName: string;
   phone: string;
-  area: string;
-  items: string;
-  total: number;
   currency: string;
   sourceUrl: string;
-  status: string;
-  eventId: string;
+  lines: SheetsOrderLine[];
 }
 
 export function cartItemsToOrderLines(items: CartItem[]): OrderLineItem[] {
   return items.map((item) => ({
     productId: item.productId,
+    slug: item.slug,
     sku: item.sku,
     name: item.name,
     bundleId: item.offerId,
     unitPriceAed: item.price,
     quantity: item.offerQuantity * item.qty,
+    lineTotal: item.price * item.qty,
+  }));
+}
+
+export function orderLinesToSheetLines(
+  items: OrderLineItem[],
+  sourceUrl: string
+): SheetsOrderLine[] {
+  return items.map((item) => ({
+    product: item.name,
+    url: item.slug ? getProductUrl(item.slug, sourceUrl) : sourceUrl,
+    sku: item.sku,
+    quantity: item.quantity,
+    totalPrice: item.lineTotal,
   }));
 }
 
@@ -57,24 +79,56 @@ export function formatOrderItemsSummary(items: CartItem[]): string {
     .join(" | ");
 }
 
-export function buildSheetsOrderPayload(
-  input: SubmitOrderInput,
+export function getProductUrl(slug: string, sourceUrl: string): string {
+  try {
+    const origin = new URL(sourceUrl).origin;
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+    return `${origin}${basePath}/products/${slug}/`;
+  } catch {
+    return sourceUrl;
+  }
+}
+
+export function buildSheetsOrderPayloadFromLines(
+  order: {
+    orderId: string;
+    customerName: string;
+    phone: string;
+    sourceUrl: string;
+    lines: SheetsOrderLine[];
+  },
   secret: string
 ): SheetsOrderPayload {
   return {
     secret,
-    orderId: input.orderId,
+    orderId: order.orderId,
     date: new Date().toISOString(),
-    customerName: input.customerName,
-    phone: input.phone,
-    area: input.area,
-    items: formatOrderItemsSummary(input.items),
-    total: input.total,
+    country: businessConfig.market.countryCode,
+    customerName: order.customerName,
+    phone: order.phone,
     currency: businessConfig.market.currency,
-    sourceUrl: input.sourceUrl,
-    status: "new",
-    eventId: input.eventId,
+    sourceUrl: order.sourceUrl,
+    lines: order.lines,
   };
+}
+
+export function buildSheetsOrderPayload(
+  input: SubmitOrderInput,
+  secret: string
+): SheetsOrderPayload {
+  return buildSheetsOrderPayloadFromLines(
+    {
+      orderId: input.orderId,
+      customerName: input.customerName,
+      phone: input.phone,
+      sourceUrl: input.sourceUrl,
+      lines: orderLinesToSheetLines(
+        cartItemsToOrderLines(input.items),
+        input.sourceUrl
+      ),
+    },
+    secret
+  );
 }
 
 function getBasePath(): string {

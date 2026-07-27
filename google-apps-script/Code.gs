@@ -1,32 +1,14 @@
 /**
  * Lara Beauty — Google Sheets order webhook
  *
- * Setup:
- * 1. Open your sheet → Extensions → Apps Script
- * 2. Paste this file, save
- * 3. Deploy → New deployment → Web app
- *    - Execute as: Me
- *    - Who has access: Anyone
- * 4. Copy the /exec URL (without /u/1/ in the path)
+ * Writes one row per product line to tab "Tabellenblatt1".
+ *
+ * Columns: date | order id | country | name | phone | product | url | sku | quantite | totalprice | currency
  */
 
 const SPREADSHEET_ID = "1n_vZl2t3X_KV0Rkpj6dR9TZRRm3OETv3IjIdzcH-diU";
-const SHEET_NAME = "Commandes";
+const SHEET_NAME = "Tabellenblatt1";
 const WEBHOOK_SECRET = "lara-beauty-secret-2026";
-
-const HEADERS = [
-  "Date",
-  "Order ID",
-  "Customer Name",
-  "Phone",
-  "Area",
-  "Items",
-  "Total",
-  "Currency",
-  "Status",
-  "Source URL",
-  "Event ID",
-];
 
 function doPost(e) {
   try {
@@ -38,25 +20,33 @@ function doPost(e) {
     }
 
     const sheet = getOrdersSheet_();
-    ensureHeaders_(sheet);
+    const lines = Array.isArray(body.lines) ? body.lines : [];
 
-    const row = [
-      body.date || new Date().toISOString(),
-      body.orderId || "",
-      body.customerName || "",
-      body.phone || "",
-      body.area || "",
-      body.items || "",
-      Number(body.total || 0),
-      body.currency || "AED",
-      body.status || "new",
-      body.sourceUrl || "",
-      body.eventId || "",
-    ];
+    if (!lines.length) {
+      return jsonResponse_({ success: false, error: "missing_lines" });
+    }
 
-    sheet.appendRow(row);
+    lines.forEach(function (line) {
+      sheet.appendRow([
+        body.date || new Date().toISOString(),
+        body.orderId || "",
+        body.country || "AE",
+        body.customerName || "",
+        body.phone || "",
+        line.product || "",
+        line.url || body.sourceUrl || "",
+        line.sku || "",
+        Number(line.quantity || 0),
+        Number(line.totalPrice || 0),
+        body.currency || "AED",
+      ]);
+    });
 
-    return jsonResponse_({ success: true, orderId: body.orderId || "" });
+    return jsonResponse_({
+      success: true,
+      orderId: body.orderId || "",
+      rowsAdded: lines.length,
+    });
   } catch (error) {
     return jsonResponse_({
       success: false,
@@ -67,26 +57,13 @@ function doPost(e) {
 
 function getOrdersSheet_() {
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
 
   if (!sheet) {
-    sheet = spreadsheet.insertSheet(SHEET_NAME);
+    throw new Error("sheet_not_found: " + SHEET_NAME);
   }
 
   return sheet;
-}
-
-function ensureHeaders_(sheet) {
-  const firstRow = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
-  const hasHeaders = firstRow.some(function (cell) {
-    return String(cell || "").trim() !== "";
-  });
-
-  if (!hasHeaders) {
-    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-    sheet.setFrozenRows(1);
-    sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
-  }
 }
 
 function parseRequestBody_(e) {

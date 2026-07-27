@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
-  buildSheetsOrderPayload,
+  buildSheetsOrderPayloadFromLines,
+  orderLinesToSheetLines,
   type OrderLineItem,
 } from "@/lib/orders";
 
@@ -18,7 +19,7 @@ interface OrderRequestBody {
 
 async function postToGoogleAppsScript(
   webhookUrl: string,
-  payload: ReturnType<typeof buildSheetsOrderPayload>
+  payload: ReturnType<typeof buildSheetsOrderPayloadFromLines>
 ) {
   const res = await fetch(webhookUrl, {
     method: "POST",
@@ -64,35 +65,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "missing_fields" }, { status: 400 });
   }
 
-  const itemsSummary = body.items
-    .map((item) => `${item.name} x${item.quantity}`)
-    .join(" | ");
-
-  const payload = buildSheetsOrderPayload(
+  const sourceUrl = body.sourceUrl || "";
+  const payload = buildSheetsOrderPayloadFromLines(
     {
       orderId: body.orderId,
       customerName: body.customerName,
       phone: body.phone,
-      area: body.area || "",
-      items: body.items.map((item) => ({
-        productId: item.productId,
-        slug: "",
-        sku: item.sku,
-        name: item.name,
-        offerId: item.bundleId,
-        offerQuantity: item.quantity,
-        offerLabel: "",
-        price: item.unitPriceAed,
-        qty: 1,
-      })),
-      total: body.total,
-      sourceUrl: body.sourceUrl || "",
-      eventId: body.eventId || "",
+      sourceUrl,
+      lines: orderLinesToSheetLines(body.items, sourceUrl),
     },
     secret
   );
-
-  payload.items = itemsSummary;
 
   try {
     const result = await postToGoogleAppsScript(webhookUrl, payload);

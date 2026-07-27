@@ -33,7 +33,8 @@ SHEETS_WEBHOOK_SECRET=lara-beauty-secret-2026
 
 Then redeploy.
 
-Orders are sent to `/api/orders` on Vercel, which forwards them to Google Sheets without exposing the secret in the browser.
+Orders are written to sheet tab **Tabellenblatt1** with columns:
+`date | order id | country | name | phone | product | url | sku | quantite | totalprice | currency`
 
 **Google Sheet:** [Lara Beauty orders](https://docs.google.com/spreadsheets/d/1n_vZl2t3X_KV0Rkpj6dR9TZRRm3OETv3IjIdzcH-diU/edit)
 
