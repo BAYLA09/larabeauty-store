@@ -6,7 +6,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: deploy
@@ -16,8 +18,6 @@ env:
   NEXT_PUBLIC_SITE_URL: https://larabeauty.store
   NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL: https://script.google.com/macros/s/AKfycbxmRpjD1uGAfwWMzPbmKvA47kKygi1i6RQSD7R6dck6MiwI036ZYe8jG3HtOI_uFPZBIw/exec
   NEXT_PUBLIC_SHEETS_WEBHOOK_SECRET: lara-beauty-secret-2026
-  DEPLOY_WEBHOOK_SECRET: lara-beauty-secret-2026
-  VPS_HOST: 187.124.12.89
 
 jobs:
   build:
@@ -30,10 +30,15 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Build static export
+      - name: Build static site
         run: |
           npm ci
           npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
 
       - uses: actions/upload-artifact@v4
         with:
@@ -41,99 +46,52 @@ jobs:
           path: out
           retention-days: 1
 
-  deploy-production:
+  deploy-github-pages:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  deploy-netlify:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Easypanel deploy webhook
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: out
+
+      - name: Deploy to Netlify
         continue-on-error: true
         env:
-          EASYPANEL_TOKEN: ${{ secrets.EASYPANEL_DEPLOY_TOKEN }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          if [ -z "$EASYPANEL_TOKEN" ]; then
-            echo "⚠ EASYPANEL_DEPLOY_TOKEN not set — skip Easypanel deploy"
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "Skip Netlify — secrets not set"
             exit 0
           fi
-          echo "→ Calling Easypanel deploy webhook..."
-          curl -sf -m 60 -X POST "http://${{ env.VPS_HOST }}:3000/api/deploy/${EASYPANEL_TOKEN}" \
-            && echo "✓ Easypanel deploy triggered" \
-            || echo "⚠ Easypanel webhook failed"
+          npx --yes netlify-cli@17 deploy --prod --dir=out --message="Deploy ${{ github.sha }}"
 
-      - name: Trigger larabeauty.store deploy webhook
-        continue-on-error: true
-        run: |
-          echo "→ Calling production deploy webhook..."
-          curl -sf -m 30 -X POST https://larabeauty.store/api/deploy \
-            -H "Authorization: Bearer ${{ env.DEPLOY_WEBHOOK_SECRET }}" \
-            -H "Content-Type: application/json" \
-            -d '{"source":"github-actions","branch":"main"}' \
-            && echo "✓ Production deploy triggered" \
-            || echo "⚠ Webhook not ready yet (needs one manual deploy first)"
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: site
-          path: out
-
-      - name: Rsync static site to VPS
-        continue-on-error: true
-        uses: burnett01/rsync-deployments@7.0.1
-        with:
-          switches: -avzr --delete
-          path: out/
-          remote_path: /var/www/larabeauty.store/
-          remote_host: ${{ env.VPS_HOST }}
-          remote_user: ${{ secrets.SSH_USER }}
-          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: SSH deploy to VPS
-        continue-on-error: true
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ env.VPS_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script_stop: true
-          script: |
-            for d in /var/www/larabeauty-store /root/larabeauty-store /home/ubuntu/larabeauty-store; do
-              if [ -d "$d/.git" ]; then cd "$d" && break; fi
-            done
-            git fetch origin main
-            git reset --hard origin/main
-            bash scripts/deploy-production.sh
-
-  deploy-gh-pages:
+  deploy-gh-pages-branch:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: site
           path: out
 
-      - name: Push static backup to gh-pages
+      - name: Push backup to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out
           cname: larabeauty.store
-
-  verify-production:
-    needs: [deploy-production, deploy-gh-pages]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check live site has latest build
-        continue-on-error: true
-        run: |
-          sleep 30
-          LIVE=$(curl -sf https://larabeauty.store/ | grep -o 'layout-[a-f0-9]*\.js' | head -1 || true)
-          EXPECTED=$(curl -sf https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/index.html | grep -o 'layout-[a-f0-9]*\.js' | head -1 || true)
-          echo "Live layout:    ${LIVE:-unknown}"
-          echo "Expected layout: ${EXPECTED:-unknown}"
-          if [ -n "$LIVE" ] && [ -n "$EXPECTED" ] && [ "$LIVE" = "$EXPECTED" ]; then
-            echo "✓ Production is up to date"
-          else
-            echo "⚠ Production still stale — add EASYPANEL_DEPLOY_TOKEN or SSH secrets to GitHub"
-            exit 1
-          fi
