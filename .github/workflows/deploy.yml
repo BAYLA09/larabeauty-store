@@ -7,12 +7,16 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: deploy
   cancel-in-progress: true
+
+env:
+  NEXT_PUBLIC_SITE_URL: https://larabeauty.store
+  NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL: https://script.google.com/macros/s/AKfycbxmRpjD1uGAfwWMzPbmKvA47kKygi1i6RQSD7R6dck6MiwI036ZYe8jG3HtOI_uFPZBIw/exec
+  NEXT_PUBLIC_SHEETS_WEBHOOK_SECRET: lara-beauty-secret-2026
+  DEPLOY_WEBHOOK_SECRET: lara-beauty-secret-2026
 
 jobs:
   build:
@@ -25,80 +29,61 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install & build
+      - name: Build static export (gh-pages backup)
         run: |
           npm ci
           npm run build
-        env:
-          NEXT_PUBLIC_SITE_URL: https://larabeauty.store
-          NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL: https://script.google.com/macros/s/AKfycbxmRpjD1uGAfwWMzPbmKvA47kKygi1i6RQSD7R6dck6MiwI036ZYe8jG3HtOI_uFPZBIw/exec
-          NEXT_PUBLIC_SHEETS_WEBHOOK_SECRET: lara-beauty-secret-2026
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: site
           path: out
           retention-days: 1
 
+  deploy-production:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger larabeauty.store deploy webhook
+        continue-on-error: true
+        run: |
+          echo "→ Calling production deploy webhook..."
+          curl -sf -m 30 -X POST https://larabeauty.store/api/deploy \
+            -H "Authorization: Bearer ${{ env.DEPLOY_WEBHOOK_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"source":"github-actions","branch":"main"}' \
+            && echo "✓ Production deploy triggered" \
+            || echo "⚠ Webhook not ready yet (first deploy needs SSH)"
+
+      - name: SSH deploy to VPS (187.124.12.89)
+        if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 187.124.12.89
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            for d in /var/www/larabeauty-store /root/larabeauty-store /home/ubuntu/larabeauty-store; do
+              if [ -d "$d/.git" ]; then cd "$d" && break; fi
+            done
+            git fetch origin main
+            git reset --hard origin/main
+            bash scripts/deploy-production.sh
+
   deploy-gh-pages:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - uses: actions/download-artifact@v4
         with:
           name: site
           path: out
 
-      - name: Enable GitHub Pages (gh-pages branch)
-        continue-on-error: true
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            try {
-              const { data } = await github.rest.repos.getPages({ owner, repo });
-              core.info(`Pages enabled: ${data.html_url}`);
-            } catch (error) {
-              if (error.status === 404) {
-                await github.rest.repos.createPagesSite({
-                  owner,
-                  repo,
-                  build_type: "legacy",
-                  source: { branch: "gh-pages", path: "/" },
-                });
-                core.info("GitHub Pages enabled on gh-pages branch");
-              } else {
-                core.warning(`Could not enable Pages: ${error.message}`);
-              }
-            }
-
-      - name: Push to gh-pages branch
+      - name: Push static backup to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out
           cname: larabeauty.store
-
-  deploy-server:
-    needs: build
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: site
-          path: out
-
-      - name: Deploy static site to production server (needs SSH secrets)
-        uses: easingthemes/ssh-deploy@v5
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.SSH_HOST }}
-          REMOTE_USER: ${{ secrets.SSH_USER }}
-          REMOTE_PORT: ${{ secrets.SSH_PORT }}
-          SOURCE: out/
-          TARGET: ${{ secrets.SSH_TARGET }}
-          ARGS: -rltgoDzvO --delete
