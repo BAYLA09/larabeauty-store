@@ -1,0 +1,76 @@
+name: Easypanel — one-click deploy fix
+
+on:
+  workflow_dispatch:
+    inputs:
+      github_pat:
+        description: "GitHub PAT (repo scope) — access l laragccfrontend"
+        required: true
+        type: string
+      easypanel_token:
+        description: "Easypanel deploy token (optional) — mn Deployments tab"
+        required: false
+        type: string
+
+jobs:
+  deploy-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync code → laragccfrontend/frontend + trigger Easypanel
+        env:
+          GITHUB_PAT: ${{ inputs.github_pat }}
+          EASYPANEL_TOKEN: ${{ inputs.easypanel_token }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$GITHUB_PAT" ]; then
+            echo "PAT required"
+            exit 1
+          fi
+
+          git config --global user.name "Lara Beauty Deploy"
+          git config --global user.email "deploy@larabeauty.store"
+
+          TARGET="https://x-access-token:${GITHUB_PAT}@github.com/lara-beauty-store-gcc/laragccfrontend.git"
+
+          echo "→ Cloning laragccfrontend/frontend..."
+          git clone --depth 1 -b frontend "$TARGET" sync-target
+
+          echo "→ Copying latest code..."
+          find sync-target -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          tar -C . \
+            --exclude=.git \
+            --exclude=node_modules \
+            --exclude=.next \
+            --exclude=out \
+            --exclude=sync-target \
+            -cf - . | tar -xf - -C sync-target
+
+          cd sync-target
+          git add -A
+
+          if git diff --staged --quiet; then
+            echo "✓ Code deja à jour sur laragccfrontend/frontend"
+          else
+            git commit -m "deploy(frontend): sync from BAYLA09/larabeauty-store@${GITHUB_SHA}
+
+          One-click Easypanel deploy fix — $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push origin frontend
+            echo "✓ Pushed to laragccfrontend/frontend"
+          fi
+
+          if [ -n "$EASYPANEL_TOKEN" ]; then
+            echo "→ Triggering Easypanel deploy..."
+            curl -sf -m 90 -X POST "http://187.124.12.89:3000/api/deploy/${EASYPANEL_TOKEN}" \
+              && echo "✓ Easypanel deploy triggered" \
+              || echo "⚠ Easypanel webhook failed — clique Deploy yedk f panel"
+          else
+            echo "→ Daba: Easypanel → frontend → Deploy"
+          fi
+
+          echo ""
+          echo "============================================"
+          echo "✓ DONE — site ghadi yban jdid f 2-3 min"
+          echo "============================================"
