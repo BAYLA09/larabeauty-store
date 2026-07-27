@@ -17,6 +17,7 @@ import { businessConfig } from "@/lib/business-config";
 import { getProductBySlug, products } from "@/lib/products";
 import { formatPrice } from "@/lib/pricing";
 import { trackEvent } from "@/lib/analytics";
+import { submitOrder } from "@/lib/orders";
 
 const { market, cod } = businessConfig;
 
@@ -98,34 +99,18 @@ export function CheckoutModal() {
     setLoading(true);
     try {
       const orderId = `LARA-${Date.now()}`;
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
-      if (apiUrl) {
-        const res = await fetch(`${apiUrl}/api/v1/orders`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            customerName: name.trim(),
-            phone: normalized.replace(/\D/g, ""),
-            area: area.trim(),
-            items: items.map((item) => ({
-              productId: item.productId,
-              sku: item.sku,
-              name: item.name,
-              bundleId: item.offerId,
-              unitPriceAed: item.price,
-              quantity: item.offerQuantity * item.qty,
-            })),
-            sourceUrl:
-              typeof window !== "undefined" ? window.location.href : "",
-            eventId: `purchase_${Date.now()}`,
-          }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.message || data.error || "order_failed");
-        }
-      }
+      await submitOrder({
+        orderId,
+        customerName: name.trim(),
+        phone: normalized.replace(/\D/g, ""),
+        area: area.trim(),
+        items,
+        total,
+        sourceUrl:
+          typeof window !== "undefined" ? window.location.href : "",
+        eventId: `purchase_${Date.now()}`,
+      });
 
       sessionStorage.setItem(
         "lara-last-order",

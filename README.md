@@ -13,11 +13,24 @@ Arabic RTL storefront for **Lara Beauty** (UAE — COD gummies).
 
 After the first deploy, every push to `main` redeploys automatically.
 
-### Environment variables (optional)
+### Environment variables
 
 | Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_API_URL` | Backend URL for order submission (e.g. your API). If empty, orders still redirect to `/thank-you` without API call. |
+| `GOOGLE_SHEETS_WEBHOOK_URL` | Google Apps Script web app URL that appends orders to your sheet (**Vercel**, server-side) |
+| `SHEETS_WEBHOOK_SECRET` | Shared secret checked by the Apps Script (`lara-beauty-secret-2026`) |
+| `GOOGLE_SHEET_ID` | Spreadsheet ID (for Apps Script setup): `1n_vZl2t3X_KV0Rkpj6dR9TZRRm3OETv3IjIdzcH-diU` |
+| `NEXT_PUBLIC_API_URL` | Optional external backend for orders (overrides `/api/orders`) |
+| `NEXT_PUBLIC_GOOGLE_SHEETS_WEBHOOK_URL` | Optional client-side webhook fallback for static GitHub Pages deploys |
+| `NEXT_PUBLIC_SHEETS_WEBHOOK_SECRET` | Secret for the client-side fallback above |
+
+**Vercel setup:** Project → Settings → Environment Variables → add `GOOGLE_SHEETS_WEBHOOK_URL` and `SHEETS_WEBHOOK_SECRET`, then redeploy.
+
+Orders are sent to `/api/orders` on Vercel, which forwards them to Google Sheets without exposing the secret in the browser.
+
+**Google Sheet:** [Lara Beauty orders](https://docs.google.com/spreadsheets/d/1n_vZl2t3X_KV0Rkpj6dR9TZRRm3OETv3IjIdzcH-diU/edit)
+
+If orders fail with “Document … is missing”, open your Apps Script and set `SPREADSHEET_ID` to the ID above (watch for `l` vs `I` typos).
 
 ## Local development
 
