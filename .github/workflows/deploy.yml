@@ -56,7 +56,7 @@ jobs:
             || echo "⚠ Webhook not ready yet (first deploy needs SSH)"
 
       - name: SSH deploy to VPS (187.124.12.89)
-        if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+        continue-on-error: true
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: 187.124.12.89
