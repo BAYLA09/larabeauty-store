@@ -26,8 +26,14 @@ export const businessConfig = {
     paymentLabel: "دفع عند الاستلام — بدون دفع أونلاين",
     deliveryPromise: "توصيل 2–4 أيام عمل لكل إمارات الدولة",
     confirmationPromise: "فريقنا يتصل فيك خلال ساعات لتأكيد العنوان",
+    confirmationWindow: "خلال 2–4 ساعات",
     returnGuarantee:
       "ضمان استرجاع 30 يوم — فلوسك ترجع إذا ما عجبك الروتين",
+  },
+  support: {
+    whatsappNumber:
+      process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "971501234567",
+    phoneDisplay: "+971 50 123 4567",
   },
   design: {
     primaryColor: "#134E3A",

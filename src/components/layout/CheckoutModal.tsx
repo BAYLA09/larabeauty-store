@@ -118,6 +118,7 @@ export function CheckoutModal() {
           orderId,
           customerName: name.trim(),
           phone: `${market.phoneCountryCode}${normalized.replace(/\D/g, "")}`,
+          area: area.trim(),
           total,
           currency: market.currency,
         })
