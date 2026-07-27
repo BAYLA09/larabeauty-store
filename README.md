@@ -2,9 +2,22 @@
 
 Arabic RTL storefront for **Lara Beauty** (UAE — COD gummies).
 
-## Deploy — 1 click w kolchi khddam
+## Deploy — auto f kol push l `main`
 
-### Option A: GitHub Pages (auto — kol push)
+### VPS (Easypanel) — larabeauty.store
+
+**Wa7ed lمرة** — zid deploy token f GitHub Secrets:
+
+1. Sir l Easypanel → app dyalek → **Deployments** → copier **Deployment Trigger URL**
+   - Format: `http://187.124.12.89:3000/api/deploy/XXXXXXXX`
+2. Sir l https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions
+3. **New secret** → Name: `EASYPANEL_DEPLOY_TOKEN` → Value: `XXXXXXXX` (token mn URL)
+
+Mn ba3d, kol push l `main` kay-trigger deploy automatiquement.
+
+**Alternative (SSH):** zid `SSH_USER` + `SSH_PRIVATE_KEY` f GitHub Secrets.
+
+### Option A: GitHub Pages (backup static)
 
 **Wa7ed lمرة b ydek:**
 
