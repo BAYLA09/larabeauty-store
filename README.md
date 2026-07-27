@@ -2,7 +2,47 @@
 
 Arabic RTL storefront for **Lara Beauty** (UAE — COD gummies).
 
-## Deploy — ma bghiti Easypanel? (2 dakika)
+## Deploy — lmochkil dyal Easypanel (9ra hadchi!)
+
+### 3lach ma kaydeployich?
+
+Easypanel **frontend** kaypull mn repo **akhor**:
+
+| | Easypanel daba | Code dyalek (main) |
+|---|---|---|
+| **Repo** | `lara-beauty-store-gcc/laragccfrontend` | `BAYLA09/larabeauty-store` |
+| **Branch** | `frontend` | `main` |
+
+**Kolchi li derna f `main` ma kaywصلch l Easypanel** — 3lach site qdim!
+
+### Fix A — Beddel source f Easypanel (2 min) ⭐
+
+1. Easypanel → **frontend** → **Source**
+2. Repo: **`BAYLA09/larabeauty-store`**
+3. Branch: **`main`**
+4. Source path: *(vide)*
+5. **Build** → Dockerfile → port **3000**
+6. **Deploy**
+
+### Fix B — Auto-sync (ila ma bghitich tbddl source)
+
+1. GitHub → https://github.com/settings/tokens → Generate PAT (scope: `repo`)
+2. Sir l https://github.com/BAYLA09/larabeauty-store/settings/secrets/actions
+3. Zid secret: **`LARAGCC_SYNC_TOKEN`** = PAT dyalek
+4. (Optional) **`EASYPANEL_DEPLOY_TOKEN`** = token mn frontend → Deployments
+5. Kol push l `main` ghadi y-sync l `laragccfrontend` w y-trigger deploy
+
+### Easypanel settings (frontend service)
+
+| Setting | Value |
+|---------|--------|
+| Dockerfile | `Dockerfile` |
+| Proxy port | **3000** |
+| Health check | `/api/health` |
+
+---
+
+## Deploy — bla Easypanel (GitHub Pages)
 
 Site dyalek **static** — ma kayhtajch VPS wla Easypanel. Kol push l `main` kay-build automatiquement.
 
