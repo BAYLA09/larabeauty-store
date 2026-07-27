@@ -135,11 +135,18 @@ function getBasePath(): string {
   return process.env.NEXT_PUBLIC_BASE_PATH || "";
 }
 
+export function normalizeGoogleAppsScriptUrl(url: string): string {
+  return url.replace(
+    /https:\/\/script\.google\.com\/macros\/u\/\d+\/s\//,
+    "https://script.google.com/macros/s/"
+  );
+}
+
 export async function postToGoogleAppsScript(
   webhookUrl: string,
   payload: SheetsOrderPayload
 ): Promise<{ success: boolean; error?: string }> {
-  const res = await fetch(webhookUrl, {
+  const res = await fetch(normalizeGoogleAppsScriptUrl(webhookUrl), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

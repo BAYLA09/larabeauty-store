@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   buildSheetsOrderPayloadFromLines,
+  normalizeGoogleAppsScriptUrl,
   orderLinesToSheetLines,
   type OrderLineItem,
 } from "@/lib/orders";
@@ -21,7 +22,7 @@ async function postToGoogleAppsScript(
   webhookUrl: string,
   payload: ReturnType<typeof buildSheetsOrderPayloadFromLines>
 ) {
-  const res = await fetch(webhookUrl, {
+  const res = await fetch(normalizeGoogleAppsScriptUrl(webhookUrl), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

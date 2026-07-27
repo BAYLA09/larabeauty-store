@@ -27,9 +27,11 @@ After the first deploy, every push to `main` redeploys automatically.
 **Vercel setup:** Project → Settings → Environment Variables:
 
 ```
-GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbzBIsOiNMzbh6r9GIgl1jihYKU3DSTRwGPR_0kaCwicQ-cjKiZNtiF9a5mAZXLkoldwAw/exec
+GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/u/1/s/AKfycbzBIsOiNMzbh6r9GIgl1jihYKU3DSTRwGPR_0kaCwicQ-cjKiZNtiF9a5mAZXLkoldwAw/exec
 SHEETS_WEBHOOK_SECRET=lara-beauty-secret-2026
 ```
+
+You can paste the `/u/1/` browser link — the API normalizes it automatically.
 
 Then redeploy.
 
@@ -45,7 +47,7 @@ Orders are written to sheet tab **Tabellenblatt1** with columns:
 3. **Deploy → New deployment → Web app**
    - Execute as: **Me**
    - Who has access: **Anyone**
-4. Use the `/exec` URL in Vercel (not the `/u/1/` browser link)
+4. Paste the deployment `/exec` URL in Vercel (browser `/u/1/` links work too)
 
 Deployment ID: `AKfycbzBIsOiNMzbh6r9GIgl1jihYKU3DSTRwGPR_0kaCwicQ-cjKiZNtiF9a5mAZXLkoldwAw`
 
