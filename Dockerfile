@@ -1,6 +1,6 @@
 # EasyPanel: branch frontend OR main, empty source path, port 3000
 # Bump CACHEBUST to force full rebuild after deploy issues
-ARG CACHEBUST=larabeauty-store-main-v1-2026-07-27
+ARG CACHEBUST=larabeauty-frontend-v2-2026-07-27
 
 FROM node:20-alpine AS base
 RUN echo "BUILD ${CACHEBUST}" && apk add --no-cache libc6-compat curl
